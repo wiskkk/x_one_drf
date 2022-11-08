@@ -20,5 +20,30 @@ services:
       - POSTGRES_PASSWORD=cost_accounting
       - POSTGRES_DB=cost_accounting_dev
 
+  redis:
+    image: redis:alpine
+  celery:
+    restart: always
+    build:
+      context: .
+    command: celery -A cost_accounting.celery worker --pool=solo --loglevel=info
+    volumes:
+      - ./cost_accounting:/cost_accounting
+    env_file:
+      - ./.env
+    depends_on:
+      - db
+      - redis
+      - web
+  celery-beat:
+    build: .
+    command: celery -A cost_accounting beat --loglevel=info
+    volumes:
+      - ./cost_accounting:/cost_accounting
+    env_file:
+      - ./.env
+    depends_on:
+      - celery
+
 volumes:
   postgres_data:

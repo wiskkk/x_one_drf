@@ -1,11 +1,13 @@
-from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import TestUser, Category
+from .models import Category
+from users.models import MyUser
 
 
-@receiver(post_save, sender=User)
+@receiver(post_save, sender=MyUser)
 def create_profile(sender, instance, created, **kwargs):
     if created:
-        TestUser.objects.create(user=instance, category=Category.objects.all())
+        category = Category.objects.filter(standard_category=True)
+        user = MyUser.objects.get(id=instance.id)
+        user.category.set(category)
